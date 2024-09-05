@@ -81,3 +81,16 @@ func listTodos(db *sql.DB) ([]Todo, error) {
 	}
 	return todos, nil
 }
+
+func deletePastDueTodos(db *sql.DB) error {
+	_, err := db.Exec(`
+        DELETE FROM todo 
+        WHERE datetime(
+            substr(deadline, 7, 4) || '-' || 
+            substr(deadline, 4, 2) || '-' || 
+            substr(deadline, 1, 2) || ' ' || 
+            substr(deadline, 12)
+        ) < datetime('now', 'localtime')
+    `)
+	return err
+}
