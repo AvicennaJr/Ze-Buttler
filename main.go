@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math/rand"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -136,18 +137,17 @@ func main() {
 	}
 
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
-		for range ticker.C {
+		for {
+			interval := time.Duration(rand.Intn(271)+30) * time.Minute
+			time.Sleep(interval)
 			aiResponse, err := CallAI(db)
 			if err != nil {
 				aiResponse = err.Error()
 			}
 			err = Alert("Ze Buttler", aiResponse, "./icons/icon.png")
-
 			if err != nil {
 				log.Println(err)
 			}
-
 		}
 	}()
 
