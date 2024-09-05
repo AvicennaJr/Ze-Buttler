@@ -36,7 +36,7 @@ func createTodo(db *sql.DB, todo Todo) (Todo, error) {
 	return todo, nil
 }
 
-func readTodo(db *sql.DB, id int) (Todo, error) {
+func readTodo(db *sql.DB, id int32) (Todo, error) {
 	var todo Todo
 	err := db.QueryRow("SELECT id, title, deadline FROM todo WHERE id = ?", id).Scan(&todo.ID, &todo.Title, &todo.Deadline)
 	if err != nil {
@@ -50,7 +50,7 @@ func updateTodo(db *sql.DB, todo Todo) error {
 	return err
 }
 
-func deleteTodo(db *sql.DB, id int) error {
+func deleteTodo(db *sql.DB, id int32) error {
 	_, err := db.Exec("DELETE FROM todo WHERE id = ?", id)
 	return err
 }
