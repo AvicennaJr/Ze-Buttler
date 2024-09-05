@@ -41,21 +41,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	aiApp := app.New()
+	aiApp := app.NewWithID("com.zebuttler.todo")
 	listWindow := aiApp.NewWindow("Your Todos")
-
-	todos, err := listTodos(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, todo := range todos {
-		listTodoView = append(listTodoView, []string{
-			fmt.Sprintf("%d", todo.ID),
-			todo.Title,
-			todo.Deadline,
-		})
-	}
 
 	list := widget.NewTable(
 		func() (int, int) {
@@ -71,7 +58,11 @@ func main() {
 
 	list.SetColumnWidth(0, 50)
 	list.SetColumnWidth(1, 150)
-	list.SetColumnWidth(3, 200)
+	list.SetColumnWidth(2, 200)
+
+	if err := refreshTodoList(db, list); err != nil {
+		log.Fatal(err)
+	}
 
 	listWindow.SetContent(list)
 	listWindow.SetMaster()
@@ -101,19 +92,15 @@ func main() {
 				Title:    title.Text,
 				Deadline: dl,
 			}
-			todo, err = createTodo(db, todo)
+			_, err = createTodo(db, todo)
 
 			if err != nil {
 				fmt.Println(err)
 			}
-			listTodoView = append(listTodoView, []string{
-				fmt.Sprintf("%d", todo.ID),
-				todo.Title,
-				todo.Deadline,
-			})
-			list.Refresh()
+			if err := refreshTodoList(db, list); err != nil {
+				log.Println(err)
+			}
 			title.SetText("")
-
 			createWindow.Hide()
 		},
 	}
@@ -140,6 +127,11 @@ func main() {
 		for {
 			interval := time.Duration(rand.Intn(271)+30) * time.Minute
 			time.Sleep(interval)
+
+			if err := refreshTodoList(db, list); err != nil {
+				log.Println(err)
+			}
+
 			aiResponse, err := CallAI(db)
 			if err != nil {
 				aiResponse = err.Error()
