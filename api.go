@@ -24,11 +24,10 @@ func CallAI(db *sql.DB) (string, error) {
 	current_time := time.Now()
 	fmt.Println("Ai thinks current time is: ", current_time.Format("02-01-2006 15:04:05"))
 
-	// Delete past due tasks
 	for _, task := range tasks {
 		taskTime, err := time.Parse("02-01-2006 15:04:05", task.Deadline)
 		if err != nil {
-			continue // Skip if unable to parse date
+			continue
 		}
 		if taskTime.Before(current_time) {
 			err = deleteTodo(db, task.ID)
@@ -38,7 +37,6 @@ func CallAI(db *sql.DB) (string, error) {
 		}
 	}
 
-	// Refresh task list after deletions
 	tasks, err = listTodos(db)
 	if err != nil {
 		return "", err
