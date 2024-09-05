@@ -21,8 +21,28 @@ func CallAI(db *sql.DB) (string, error) {
 		return "", err
 	}
 
-	current_time := time.Now().Format("02-01-2006 15:04:05")
-	fmt.Println("Ai thinks current time is: ", current_time)
+	current_time := time.Now()
+	fmt.Println("Ai thinks current time is: ", current_time.Format("02-01-2006 15:04:05"))
+
+	// Delete past due tasks
+	for _, task := range tasks {
+		taskTime, err := time.Parse("02-01-2006 15:04:05", task.Deadline)
+		if err != nil {
+			continue // Skip if unable to parse date
+		}
+		if taskTime.Before(current_time) {
+			err = deleteTodo(db, task.ID)
+			if err != nil {
+				fmt.Printf("Failed to delete task %d: %v\n", task.ID, err)
+			}
+		}
+	}
+
+	// Refresh task list after deletions
+	tasks, err = listTodos(db)
+	if err != nil {
+		return "", err
+	}
 
 	prompt := fmt.Sprintf(`You are a motivational AI assistant. Based on the task list, craft a brief, encouraging message to help the user tackle their tasks effectively. Prioritize tasks with closer deadlines. If the task list is empty, provide a brief congratulatory message. The Current time formatted as DD-MM-YYYY HH:MM:SS in 24 Hour system is %s If the todo item has passed the current time, do not mention it.
 
