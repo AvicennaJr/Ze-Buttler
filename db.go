@@ -56,7 +56,16 @@ func deleteTodo(db *sql.DB, id int32) error {
 }
 
 func listTodos(db *sql.DB) ([]Todo, error) {
-	rows, err := db.Query("SELECT id, title, deadline FROM todo")
+	rows, err := db.Query(`
+        SELECT id, title, deadline 
+        FROM todo 
+        ORDER BY datetime(
+            substr(deadline, 7, 4) || '-' || 
+            substr(deadline, 4, 2) || '-' || 
+            substr(deadline, 1, 2) || ' ' || 
+            substr(deadline, 12)
+        )
+    `)
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +73,11 @@ func listTodos(db *sql.DB) ([]Todo, error) {
 
 	var todos []Todo
 	for rows.Next() {
-		var todo Todo
-
-		if err := rows.Scan(&todo.ID, &todo.Title, &todo.Deadline); err != nil {
+		var t Todo
+		if err := rows.Scan(&t.ID, &t.Title, &t.Deadline); err != nil {
 			return nil, err
 		}
-
-		todos = append(todos, todo)
+		todos = append(todos, t)
 	}
 	return todos, nil
 }
